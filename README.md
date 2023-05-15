@@ -1,3 +1,21 @@
+## source 분석은 여기부터
+### src/cron-detect.js
+```
+ 24   for (const bid of bids) {
+ 25     console.log(`> start processing bid with id:${bid.id}`)
+ 26     const { validator, pubKeyIndex } = bid
+ 27     const { ipfsHashForEncryptedValidatorKey, validatorPubKey } = validator
+ 28     const file = await fetchFromIpfs(ipfsHashForEncryptedValidatorKey)
+ 29     const validatorKey = decryptKeyPairJSON(privateKeys, PASSWORD)
+ 30     const { pubKeyArray, privKeyArray } = validatorKey
+ 31     const keypairForIndex = getKeyPairByPubKeyIndex(pubKeyIndex, privKeyArray, pubKeyArray)
+ 32     const data = decryptValidatorKeyInfo(file, keypairForIndex)
+ 33     console.log(`creating ${data.keystoreName} for bid:${bid.id}`)
+ 34     createFSBidOutput(OUTPUT_LOCATION, data, bid.id, validatorPubKey)
+ 35     console.log(`< end processing bid with id:${bid.id}`)
+ 36   }
+```
+
 ## EtherFi Sync Client
 
 ### Local development
@@ -19,6 +37,8 @@ Prepare a .env that suits your environment, you will need to configure:
 - ETHERFI_SC_PRIVATE_KEYS_FILE_LOCATION, the location of the private keys generated with the desktop app
 
 Build the image with `docker build . -t etherfi-sync-client:0.0.1` or `docker build . -t etherfi-sync-client:latest`.
+  --> 빌드하는 명령어로, 만약 소스코드를 수정했거나 혹은 이름이 0.0.1, latest보다 다른 이름을 지정하고 싶으면 여기를 자유롭게 바꾸면 된다.
+  --> `docker build . -t etherfi-sync-client:XXX`
 
 To run the image as a container, use `docker run --env-file .env etherfi-sync-client:0.0.1` or `docker run --env-file .env etherfi-sync-client:latest`.
 
@@ -29,6 +49,7 @@ Create a `storage directory` with two sub directories, `input` & `output`.
 In the `input` directory include the keys generated from desktop app for NO.
 - privateEtherfiKeystore-1681395800316.json
 - publicEtherfiKeystore-1681395800301.json
+- --> etherfi-deskop을 통해 만들어지는 key로 bidding 후에 validator key를 decrypt하기 위한 것이다. privateEtherfiKeystore-xxx.json과 publicEtherfiKeystore-XXX.json은 한개씩만 생기기 때문에 이부분을 위해 소스코드를 수정해야 할 것은 없어보인다.
 
 Ensure environment is correct for variables:
 - ETHERFI_SC_IPFS_GATEWAY (probably ok)
